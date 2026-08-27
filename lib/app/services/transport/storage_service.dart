@@ -346,11 +346,12 @@ class StorageService extends GetxService
 
   @override
   void onScreenOpened() {
-    // if(_client == null || _wsService.running){
-    //   return;
-    // }
-    //如果启用了且ws断开则重连
-    // unawaited(reconnectWs());
+    // 息屏自动断开通知服务后，亮屏时需要重连通知服务 WebSocket。
+    // 在线心跳任务依赖 _wsService.running，只有重连成功才会恢复广播在线心跳。
+    if (_client == null || _wsService.running) {
+      return;
+    }
+    unawaited(reconnectWs());
   }
 
   Future<void> start() async {
