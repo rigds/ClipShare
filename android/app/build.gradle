@@ -23,10 +23,11 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-//签名配置
-def keystorePropertiesFile = rootProject.file("key.properties")
-def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+// 签名配置：已注释掉，避免因缺少 key.properties 文件导致构建崩溃
+// def keystorePropertiesFile = rootProject.file("key.properties")
+// def keystoreProperties = new Properties()
+// keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 //https://github.com/flutter/flutter/issues/156304
 android {
     namespace "top.coclyun.clipshare"
@@ -84,6 +85,9 @@ android {
             }
         }
     }
+    
+    // 自定义签名配置：已注释掉。Debug 模式将默认使用自带密钥，Release 模式将输出未签名 APK。
+    /*
     signingConfigs{
         debug{
             keyAlias keystoreProperties['keyAlias']
@@ -98,11 +102,15 @@ android {
             storePassword keystoreProperties['storePassword']
         }
     }
+    */
+    
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.release
+            
+            // 已注释掉 release 的签名引用，以输出未签名 APK
+            // signingConfig signingConfigs.release
         }
     }
     buildFeatures {
