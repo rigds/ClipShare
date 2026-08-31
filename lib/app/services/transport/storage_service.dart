@@ -348,7 +348,11 @@ class StorageService extends GetxService
   void onScreenOpened() {
     // 息屏自动断开通知服务后，亮屏时需要重连通知服务 WebSocket。
     // 在线心跳任务依赖 _wsService.running，只有重连成功才会恢复广播在线心跳。
-    if (_client == null || _wsService.running) {
+    // 仅当连接已死/半开时才强制重连；连接健康时跳过，避免无谓的断连重连抖动与耗电。
+    if (_client == null) {
+      return;
+    }
+    if (_wsService.running && _wsService.isHealthy) {
       return;
     }
     unawaited(reconnectWs());
