@@ -68,6 +68,21 @@ class StorageWsService {
 
   bool get running => _started;
 
+  /// 判断当前 WebSocket 连接是否健康：
+  /// 会话/通道存在，且最近一次收到服务端消息未超过心跳超时时间。
+  /// 用于识别息屏断网/进程冻结后底层已死但 _started 仍为 true 的半开连接。
+  bool get isHealthy {
+    if (!_started || _channel == null || _activeSessionId == null) {
+      return false;
+    }
+    final last = _lastServerMessageAt;
+    if (last == null) {
+      // 连接刚建立、尚未收到首条服务端消息，视为健康，避免打断进行中的连接。
+      return true;
+    }
+    return DateTime.now().difference(last) <= _pingTimeout;
+  }
+
   Stream<StorageWsStatus> get statusStream => _statusController.stream;
 
   Stream<WsMsgData> get messageStream => _messageController.stream;
