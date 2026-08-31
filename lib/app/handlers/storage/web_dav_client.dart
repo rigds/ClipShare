@@ -377,6 +377,7 @@ class WebDAVClient extends StorageClient {
     String path,
     String localFilePath, {
     StorageProgressFunc? onProgress,
+    bool createDir = false,
   }) async {
     path = path.unixPath;
     try {
@@ -386,8 +387,35 @@ class WebDAVClient extends StorageClient {
       }
       final filePath = _toClientPath(path, isDirectory: false);
       StorageClient.recordClientInvoke('uploadFile', path: path);
-      await _client.putFileStream(filePath, file, onProgress: onProgress);
-      return true;
+      Object? firstError;
+      try {
+        await _client.putFileStream(filePath, file, onProgress: onProgress);
+        return true;
+      } catch (err, stack) {
+        firstError = err;
+        if (createDir) {
+          final dir = (path.split(Constants.unixDirSeparate)..removeLast())
+              .join(Constants.unixDirSeparate);
+          final directoryCreated = await createDirectory(dir);
+          if (directoryCreated) {
+            try {
+              await _client.putFileStream(filePath, File(localFilePath), onProgress: onProgress);
+              return true;
+            } catch (retryErr, retryStack) {
+              _logStorageError('uploadFile', retryErr, retryStack, <String, Object?>{
+                'path': path,
+                'localFilePath': localFilePath,
+              });
+              return false;
+            }
+          }
+        }
+        _logStorageError('uploadFile', firstError, stack, <String, Object?>{
+          'path': path,
+          'localFilePath': localFilePath,
+        });
+        return false;
+      }
     } catch (err, stack) {
       _logStorageError('uploadFile', err, stack, <String, Object?>{
         'path': path,

@@ -158,10 +158,12 @@ abstract class StorageClient {
   /// [path] - 目标存储路径
   /// [localFilePath] - 本地文件路径
   /// [onProgress] - 可选进度回调
+  /// [createDir] - 为 true 时，失败后自动级联创建父目录再重试（WebDAV 需要）
   Future<bool> uploadFile(
     String path,
     String localFilePath, {
     StorageProgressFunc? onProgress,
+    bool createDir = false,
   });
 
   /// 下载文件到本地
